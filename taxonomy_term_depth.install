@@ -1,0 +1,46 @@
+<?php
+/**
+ * @file
+ */
+
+use \Drupal\Core\Database\Database;
+/**
+ * Implements hook_install()
+ */
+function taxonomy_term_depth_install() {
+  $schema = Database::getConnection()->schema();
+  if ($schema->tableExists('taxonomy_term_field_data')) {
+    $specs['fields']['depth'] = array(
+      'type'        => 'int',
+      'size'        => 'tiny',
+      'description' => 'Taxonomy depth',
+      'default'     => NULL,
+    );
+
+    $specs['indexes'] = array(
+      'depth' => array('depth', 'tid'),
+    );
+
+    $schema->addField('taxonomy_term_field_data', 'depth', $specs['fields']['depth'], $specs['indexes']);
+  }
+
+  // Update all term depths
+  $options = array();
+  batch_set(array(
+    'operations' => array(
+      array('taxonomy_term_depth_batch_callbacks_update_term_depth', array($options)),
+    ),
+    'title' => t('Updating depths for all terms'),
+    'file' => TAXONOMY_TERM_DEPTH_ROOT_REL. '/taxonomy_term_depth.batch.inc',
+  ));
+}
+
+/**
+ * Implements hook_uninstall()
+ */
+function taxonomy_term_depth_uninstall() {
+  $schema = Database::getConnection()->schema();
+  if ($schema->tableExists('taxonomy_term_field_data')) {
+    $schema->dropField('taxonomy_term_field_data', 'depth');
+  }
+}
