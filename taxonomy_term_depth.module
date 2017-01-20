@@ -145,3 +145,37 @@ function taxonomy_term_depth_get_chain($tid, $reveresed = FALSE) {
 //
 //  return $data;
 //}
+
+
+/**
+ * Implements hook_views_api().
+ */
+function taxonomy_term_depth_views_api() {
+  return array(
+    'api' => 3,
+  );
+}
+
+/**
+ * Implements hook_views_data_alter().
+ */
+function taxonomy_term_depth_views_data_alter(array &$data) {
+  $data['taxonomy_term_field_data']['depth'] = array(
+    'title' => t('Depth'),
+    'group' => t('Taxonomy term'),
+    'help' => t('Add depth value to sort and filter.'),
+    'field' => array(
+      'id' => 'numeric',
+    ),
+    'sort' => array(
+      'id' => 'standard',
+    ),
+    'filter' => array(
+      'help' => t('Filter by the depth value.'),
+      'id' => 'numeric',
+    ),
+  );
+
+  return $data;
+}
+
