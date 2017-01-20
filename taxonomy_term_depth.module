@@ -105,48 +105,6 @@ function taxonomy_term_depth_get_chain($tid, $reveresed = FALSE) {
   return $reveresed ? array_reverse($parents) : $parents;
 }
 
-// @todo: Implement views integration
-///**
-// * Implements hook_views_api().
-// */
-//function taxonomy_term_depth_views_api() {
-//	return array(
-//		'api' => 3,
-//	);
-//}
-//
-///**
-// * Implements hook_views_data()
-// * Exposes our playcount table to views
-// */
-//function taxonomy_term_depth_views_data() {
-//
-//  // Our fields
-//  $data['taxonomy_term_data']['depth'] = array(
-//    'title' => t('Depth'),
-//    'help' => t('The depth of a taxonomy term.'),
-//  );
-//
-//  // Adds our field in the "Fields" section of Views
-//  $data['taxonomy_term_data']['depth']['field'] = array(
-//    'handler' => 'views_handler_field_numeric',
-//    'click sortable' => TRUE,
-//  );
-//
-//  // Adds our field in the "Filters" section of Views
-//  $data['taxonomy_term_data']['depth']['filter'] = array(
-//    'handler' => 'views_handler_filter_numeric',
-//  );
-//
-//  // Adds our field in the "Sort" section of Views
-//  $data['taxonomy_term_data']['depth']['sort'] = array(
-//    'handler' => 'views_handler_sort',
-//  );
-//
-//  return $data;
-//}
-
-
 /**
  * Implements hook_views_api().
  */
