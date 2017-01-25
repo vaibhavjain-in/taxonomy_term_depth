@@ -43,18 +43,18 @@ function taxonomy_term_depth_get_by_tid($tid, $force = FALSE) {
 /**
  * Implements hook_entity_update();
  */
-function taxonomy_term_depth_entity_update($entity, $type) {
+function taxonomy_term_depth_entity_update($entity) {
   // Update depth of the item on save
-  if ($type == 'taxonomy_term') {
-    taxonomy_term_depth_get_by_tid($entity->tid, TRUE);
+  if ($entity->getEntityTypeId() == 'taxonomy_term') {
+    taxonomy_term_depth_get_by_tid($entity->id(), TRUE);
   }
 }
 
 /**
  * Implements hook_entity_insert()
  */
-function taxonomy_term_depth_entity_insert($entity, $type) {
-  taxonomy_term_depth_entity_update($entity, $type);
+function taxonomy_term_depth_entity_insert($entity) {
+  taxonomy_term_depth_entity_update($entity);
 }
 
 /**
@@ -133,7 +133,5 @@ function taxonomy_term_depth_views_data_alter(array &$data) {
       'id' => 'numeric',
     ),
   );
-
   return $data;
 }
-
