@@ -21,12 +21,12 @@ function taxonomy_term_depth_get_by_tid($tid, $force = FALSE) {
   if ($force || !isset($cache[$cache_key])) {
     // Try to get cached value first but only if no need to rebuild
     // If force flag is set to TRUE the query won't be executed
-    if ($force || !($depth = db_query('SELECT depth FROM {taxonomy_term_field_data} WHERE tid=:tid', array(':tid' => $tid))->fetchField())) {
+    if ($force || !($depth = Drupal::database()->query('SELECT depth FROM {taxonomy_term_field_data} WHERE tid=:tid', array(':tid' => $tid))->fetchField())) {
       // Calculate value without using caches
       $depth = _taxonomy_term_depth_get_nocache($tid);
 
       // And write to database cache
-      db_update('taxonomy_term_field_data')
+      Drupal::database()->update('taxonomy_term_field_data')
         ->fields(array(
           'depth' => $depth,
         ))
@@ -81,7 +81,7 @@ function taxonomy_term_depth_get_parent($tid, $nocache = FALSE) {
   $cache = &drupal_static(__FUNCTION__, array());
   $cache_key = $tid;
   if (!isset($cache[$cache_key]) || $nocache) {
-    $cache[$cache_key] = db_query(
+    $cache[$cache_key] = Drupal::database()->query(
       "SELECT parent FROM {taxonomy_term_hierarchy} WHERE tid = :tid",
       array(':tid' => $tid)
     )->fetchField();
