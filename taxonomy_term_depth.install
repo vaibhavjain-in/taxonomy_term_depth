@@ -33,6 +33,12 @@ function taxonomy_term_depth_install() {
     'title' => t('Updating depths for all terms'),
     'file' => TAXONOMY_TERM_DEPTH_ROOT_REL. '/taxonomy_term_depth.batch.inc',
   ));
+
+  // Support install via drush
+  $user = \Drupal::currentUser();
+  if ($user->id() == 0) {
+    drush_backend_batch_process();
+  }
 }
 
 /**
