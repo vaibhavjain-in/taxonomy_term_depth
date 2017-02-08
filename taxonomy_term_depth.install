@@ -31,6 +31,7 @@ function taxonomy_term_depth_install() {
   }
 
   // Update all term depths
+/*
   $options = array();
   batch_set(array(
     'operations' => array(
@@ -45,6 +46,7 @@ function taxonomy_term_depth_install() {
   if ($user->id() == 0) {
     drush_backend_batch_process();
   }
+*/
 }
 
 /**
