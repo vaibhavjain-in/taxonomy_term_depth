@@ -135,3 +135,19 @@ function taxonomy_term_depth_views_data_alter(array &$data) {
   );
   return $data;
 }
+
+/**
+ * Implements hook_term_depth_entity_base_field_info_alter().
+ */
+function taxonomy_term_depth_entity_base_field_info_alter(&$fields, \Drupal\Core\Entity\EntityTypeInterface $entity_type) {
+  // Alter the mymodule_text field to use a custom class.
+  if ($entity_type->id() == 'taxonomy_term') {
+    // $field_db = \Drupal\Core\Database\Database::getConnection()->schema();
+    $fields['depth'] = \Drupal\Core\Field\BaseFieldDefinition::create('integer')
+      ->setName('depth')
+      ->setLabel(t('Depth'))
+      ->setDescription(t('Term depth (1 based)'))
+      ->setDefaultValue(NULL);
+  }
+}
+
