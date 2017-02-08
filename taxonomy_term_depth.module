@@ -37,7 +37,7 @@ function taxonomy_term_depth_get_by_tid($tid, $force = FALSE) {
     $cache[$cache_key] = $depth;
   }
 
-  return $depth;
+  return $cache[$cache_key];
 }
 
 /**
