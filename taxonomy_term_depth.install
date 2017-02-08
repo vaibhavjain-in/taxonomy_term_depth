@@ -4,6 +4,12 @@
  */
 
 use \Drupal\Core\Database\Database;
+
+/**
+ * Require all constants
+ */
+require_once __DIR__. '/constants.inc';
+
 /**
  * Implements hook_install()
  */
