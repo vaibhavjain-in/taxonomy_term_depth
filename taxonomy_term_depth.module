@@ -91,10 +91,38 @@ function taxonomy_term_depth_get_parent($tid, $nocache = FALSE) {
 }
 
 /**
+ * Gets child of the term
+ * @param $tid
+ *  Term tid to find its parent
+ */
+function taxonomy_term_depth_get_child($tid, $nocache = FALSE) {
+  $cache = &drupal_static(__FUNCTION__, array());
+  $cache_key = $tid;
+  if (!isset($cache[$cache_key]) || $nocache) {
+    $cache[$cache_key] = Drupal::database()->query(
+      "SELECT tid FROM {taxonomy_term_hierarchy} WHERE parent = :tid",
+      array(':tid' => $tid)
+    )->fetchField();
+  }
+
+  return $cache[$cache_key];
+}
+
+/**
+ * @param $tid
+ * @return array
+ * @deprecated
+ */
+function taxonomy_term_depth_get_chain($tid, $reversed = FALSE) {
+  return taxonomy_term_depth_get_parents($tid, $reversed);
+}
+
+/**
+ * Get parents of the term.
  * @param $tid
  * @return array
  */
-function taxonomy_term_depth_get_chain($tid, $reveresed = FALSE) {
+function taxonomy_term_depth_get_parents($tid, $reversed = FALSE) {
   // @todo: Caching parents or not worth?
   $parents = array();
   $parent = $tid;
@@ -102,7 +130,37 @@ function taxonomy_term_depth_get_chain($tid, $reveresed = FALSE) {
     $parents[] = $parent;
   }
 
-  return $reveresed ? array_reverse($parents) : $parents;
+  return $reversed ? array_reverse($parents) : $parents;
+}
+
+/**
+ * Gets children of the term.
+ * @param $tid
+ * @return array
+ */
+function taxonomy_term_depth_get_children($tid, $reversed = FALSE) {
+  $children = [];
+
+  // Now get children
+  $child = $tid;
+  while ($child = taxonomy_term_depth_get_child($child)) {
+    $children[] = $child;
+  }
+
+  return $reversed ? array_reverse($children) : $children;
+}
+
+/**
+ * Gets full chain of terms, including term itself
+ * @param $tid
+ * @return array
+ */
+function taxonomy_term_depth_get_full_chain($tid, $reversed = FALSE) {
+  $parents = taxonomy_term_depth_get_parents($tid, TRUE);
+  $children = taxonomy_term_depth_get_children($tid, TRUE);
+  $chain = array_merge($parents, [ $tid ], $children);
+
+  return $reversed ? array_reverse($chain) : $chain;
 }
 
 /**
@@ -139,16 +197,22 @@ function taxonomy_term_depth_views_data_alter(array &$data) {
 /**
  * Implements hook_term_depth_entity_base_field_info_alter().
  */
-function taxonomy_term_depth_entity_base_field_info_alter(&$fields, \Drupal\Core\Entity\EntityTypeInterface $entity_type) {
-  return; // @fixme: Causes error on taxonomy_view page
+function taxonomy_term_depth_entity_base_field_info(\Drupal\Core\Entity\EntityTypeInterface $entity_type) {
+  return []; // @fixme: Disabled
   // Alter the mymodule_text field to use a custom class.
+  $fields = [];
   if ($entity_type->id() == 'taxonomy_term') {
     // $field_db = \Drupal\Core\Database\Database::getConnection()->schema();
     $fields['depth'] = \Drupal\Core\Field\BaseFieldDefinition::create('integer')
+      ->setCardinality(0)
+      ->setReadOnly(TRUE)
+      ->setProvider('taxonomy_term_depth')
       ->setName('depth')
       ->setLabel(t('Depth'))
       ->setDescription(t('Term depth (1 based)'))
       ->setDefaultValue(NULL);
   }
+
+  return $fields;
 }
 
