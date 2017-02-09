@@ -57,11 +57,3 @@ function taxonomy_term_depth_uninstall() {
     $schema->dropField('taxonomy_term_field_data', 'depth');
   }
 }
-
-///**
-// * Update entity schema.
-// */
-//function taxonomy_term_depth_update_8001() {
-////  \Drupal::entityTypeManager()->clearCachedDefinitions();
-////  \Drupal::entityDefinitionUpdateManager()->applyUpdates();
-//}
