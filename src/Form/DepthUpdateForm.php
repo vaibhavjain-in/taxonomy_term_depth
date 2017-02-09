@@ -46,6 +46,7 @@ class DepthUpdateForm extends FormBase {
 
     // Truncate until two digits at the end without rounding the value.
     $percentProcessed = floor((100 - (100 * $countEmpty / $countAll)) * 100) / 100;
+    $percentProcessed = $percentProcessed > 100 ? 100 : $percentProcessed;
     $form['display']['processed_info'] = [
       '#type' => 'item',
       'value' => [
@@ -57,17 +58,55 @@ class DepthUpdateForm extends FormBase {
       ],
     ];
 
+    if ($percentProcessed < 100 && ($queued_count = taxonomy_term_depth_queue_manager($vocabulary->id())->queueSize()) > 1)
+    $form['display']['queued_info'] = [
+      '#type' => 'item',
+      'value' => [
+        '#markup' => '
+            <span class="title">Queued</span>
+            <span class="value">'. $queued_count .'</span>
+            <span class="suffix">terms</span>
+        ',
+      ],
+    ];
+
     $form['actions']['rebuild all'] = [
       '#identity' => 'btn_rebuild_all',
-      '#value' => t('Rebuild all terms'),
+      '#value' => t('Rebuild all terms (in batch)'),
       '#type' => 'submit',
+    ];
+
+    $form['actions']['rebuild all queue'] = [
+      '#identity' => 'btn_rebuild_all_queue',
+      '#value' => t('Queue all items to rebuild'),
+      '#type' => 'submit',
+    ];
+
+    $form['actions']['rebuild all voc queue'] = [
+      '#identity' => 'btn_rebuild_all_voc_queue',
+      '#value' => t('Queue all items to rebuild (for all vocabularies)'),
+      '#type' => 'submit',
+    ];
+
+    if ($percentProcessed < 100) {
+      $form['actions']['rebuild missing queue'] = [
+        '#identity' => 'btn_rebuild_missing_queue',
+        '#value'    => t('Queue missing items'),
+        '#type'     => 'submit',
+      ];
+    }
+
+    $form['actions']['rebuild missing all voc queue'] = [
+      '#identity' => 'btn_rebuild_missing_all_voc_queue',
+      '#value'    => t('Queue missing items (for all vocabularies)'),
+      '#type'     => 'submit',
     ];
 
     $form['vid'] = [
       '#type' => 'value',
       '#value' => $vocabulary->id(),
     ];
-    
+
     return $form;
   }
 
@@ -92,6 +131,18 @@ class DepthUpdateForm extends FormBase {
           'title' => t('Updating depths for all terms'),
           'file' => TAXONOMY_TERM_DEPTH_ROOT_REL. '/taxonomy_term_depth.batch.inc',
         ));
+        break;
+      case 'btn_rebuild_all_voc_queue':
+        taxonomy_term_depth_queue_manager()->queueBatch();
+        break;
+      case 'btn_rebuild_all_queue':
+        taxonomy_term_depth_queue_manager($options['vids'])->queueBatch();
+        break;
+      case 'btn_rebuild_missing_all_voc_queue':
+        taxonomy_term_depth_queue_manager()->queueBatchMissing();
+        break;
+      case 'btn_rebuild_missing_queue':
+        taxonomy_term_depth_queue_manager($options['vids'])->queueBatchMissing();
         break;
       default:
         drupal_set_message(t('Wrong operation selected'));

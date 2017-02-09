@@ -1,7 +1,7 @@
 <?php
 /**
  * @file
- * Provides some custom functionality.
+ * Main module file.
  */
 
 /**
@@ -46,7 +46,14 @@ function taxonomy_term_depth_get_by_tid($tid, $force = FALSE) {
 function taxonomy_term_depth_entity_update($entity) {
   // Update depth of the item on save
   if ($entity->getEntityTypeId() == 'taxonomy_term') {
-    taxonomy_term_depth_get_by_tid($entity->id(), TRUE);
+    /**
+     * @var $entity \Drupal\taxonomy\Entity\Term
+     */
+    // Only update if depth was changed
+    if (NULL === $entity->depth_level->first() || $entity->depth_level->first()->value != _taxonomy_term_depth_get_nocache($entity->id())) {
+      $depth = taxonomy_term_depth_get_by_tid($entity->id(), TRUE);
+      $entity->depth_level->setValue(['value' => $depth]);
+    }
   }
 }
 
@@ -195,24 +202,41 @@ function taxonomy_term_depth_views_data_alter(array &$data) {
 }
 
 /**
- * Implements hook_term_depth_entity_base_field_info_alter().
+ * Implements hook_term_depth_entity_base_field_info().
  */
 function taxonomy_term_depth_entity_base_field_info(\Drupal\Core\Entity\EntityTypeInterface $entity_type) {
-  return []; // @fixme: Disabled
-  // Alter the mymodule_text field to use a custom class.
   $fields = [];
   if ($entity_type->id() == 'taxonomy_term') {
     // $field_db = \Drupal\Core\Database\Database::getConnection()->schema();
-    $fields['depth'] = \Drupal\Core\Field\BaseFieldDefinition::create('integer')
-      ->setCardinality(0)
+    $fields['depth_level'] = \Drupal\Core\Field\BaseFieldDefinition::create('integer')
       ->setReadOnly(TRUE)
       ->setProvider('taxonomy_term_depth')
-      ->setName('depth')
       ->setLabel(t('Depth'))
       ->setDescription(t('Term depth (1 based)'))
-      ->setDefaultValue(NULL);
+      ->setDefaultValue(NULL)
+      ->setName('depth');
   }
 
   return $fields;
 }
 
+/**
+ * Implements hook_term_depth_entity_base_field_info_alter().
+ */
+function taxonomy_term_depth_entity_base_field_info_alter(&$fields, \Drupal\Core\Entity\EntityTypeInterface $entity_type) {
+  /**
+   * @var $fields\Drupal\Core\Field\BaseFieldDefinition[]
+   */
+  if ($entity_type->id() == 'taxonomy_term' && isset($fields['depth_level'])) {
+    // Replace exact column name.
+    $fields['depth_level']->setName('depth');
+  }
+}
+
+/**
+ * Get QueueManager service.
+ * @return Drupal\taxonomy_term_depth\QueueManager\Manager.
+ */
+function taxonomy_term_depth_queue_manager($vid = NULL) {
+  return \Drupal::service('taxonomy_term_depth.queue_service')->setVid($vid);
+}

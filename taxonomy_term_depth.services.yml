@@ -1,0 +1,3 @@
+services:
+  taxonomy_term_depth.queue_service:
+    class: Drupal\taxonomy_term_depth\QueueManager\Manager

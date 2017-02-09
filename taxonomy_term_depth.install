@@ -1,6 +1,7 @@
 <?php
 /**
  * @file
+ * Install file.
  */
 
 use \Drupal\Core\Database\Database;
@@ -14,6 +15,21 @@ require_once __DIR__. '/constants.inc';
  * Implements hook_install()
  */
 function taxonomy_term_depth_install() {
+  // @todo: Replace with DefinitionUpdate handlers
+//  $entity_manager = \Drupal::entityManager();
+//  $definition = $entity_manager->getFieldStorageDefinitions('node')['depth'];
+//  $entity_manager->onFieldStorageDefinitionCreate($definition);
+  _taxonomy_term_depth_install_addfield();
+
+  // Queue all terms to update depths.
+  /**
+   * @var $queue_manager Drupal\taxonomy_term_depth\QueueManager\Manager.
+   */
+  $queue_manager = \Drupal::service('taxonomy_term_depth.queue_service');
+  $queue_manager->queueBatch();
+}
+
+function _taxonomy_term_depth_install_addfield() {
   $schema = Database::getConnection()->schema();
   if ($schema->tableExists('taxonomy_term_field_data')) {
     $specs['fields']['depth'] = array(
@@ -29,32 +45,23 @@ function taxonomy_term_depth_install() {
 
     $schema->addField('taxonomy_term_field_data', 'depth', $specs['fields']['depth'], $specs['indexes']);
   }
-
-  // Update all term depths
-/*
-  $options = array();
-  batch_set(array(
-    'operations' => array(
-      array('taxonomy_term_depth_batch_callbacks_update_term_depth', array($options)),
-    ),
-    'title' => t('Updating depths for all terms'),
-    'file' => TAXONOMY_TERM_DEPTH_ROOT_REL. '/taxonomy_term_depth.batch.inc',
-  ));
-
-  // Support install via drush
-  $user = \Drupal::currentUser();
-  if ($user->id() == 0) {
-    drush_backend_batch_process();
-  }
-*/
 }
 
 /**
  * Implements hook_uninstall()
  */
 function taxonomy_term_depth_uninstall() {
+  // @todo: Replace with DefinitionUpdate handlers as explained on https://www.drupal.org/node/2078241
   $schema = Database::getConnection()->schema();
   if ($schema->tableExists('taxonomy_term_field_data')) {
     $schema->dropField('taxonomy_term_field_data', 'depth');
   }
 }
+
+///**
+// * Update entity schema.
+// */
+//function taxonomy_term_depth_update_8001() {
+////  \Drupal::entityTypeManager()->clearCachedDefinitions();
+////  \Drupal::entityDefinitionUpdateManager()->applyUpdates();
+//}
