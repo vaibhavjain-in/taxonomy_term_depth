@@ -1,10 +1,12 @@
 type: module
 name: Taxonomy term depth
+core: 8.x
 description: Provides field for storing taxonomy depth value and some wrappers integration with modules
 package: Taxonomy
-# core: 8.x
-# configure: devel.admin_settings
 dependencies:
   - taxonomy
 tags:
   - taxonomy
+
+# version: VERSION
+# core: 8.x
