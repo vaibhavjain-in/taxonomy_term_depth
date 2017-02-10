@@ -51,10 +51,11 @@ function taxonomy_term_depth_entity_update($entity) {
      * @var $entity \Drupal\taxonomy\Entity\Term
      */
     // Only update if depth was changed
-    if (NULL === $entity->depth_level->first() || $entity->depth_level->first()->value != _taxonomy_term_depth_get_nocache($entity->id())) {
+    // @fixme: Uncomment this condition since v2.0
+    //if (NULL === $entity->depth_level->first() || $entity->depth_level->first()->value != _taxonomy_term_depth_get_nocache($entity->id())) {
       $depth = taxonomy_term_depth_get_by_tid($entity->id(), TRUE);
       $entity->depth_level->setValue(['value' => $depth]);
-    }
+    //}
   }
 }
 
