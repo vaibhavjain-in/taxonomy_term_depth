@@ -21,15 +21,16 @@ function taxonomy_term_depth_get_by_tid($tid, $force = FALSE) {
   if ($force || !isset($cache[$cache_key])) {
     // Try to get cached value first but only if no need to rebuild
     // If force flag is set to TRUE the query won't be executed
-    if ($force || !($depth = Drupal::database()->query('SELECT depth FROM {taxonomy_term_field_data} WHERE tid=:tid', array(':tid' => $tid))->fetchField())) {
+    if ($force || !($depth = Drupal::database()->query('SELECT depth_level FROM {taxonomy_term_field_data} WHERE tid=:tid', array(':tid' => $tid))->fetchField())) {
       // Calculate value without using caches
       $depth = _taxonomy_term_depth_get_nocache($tid);
 
       // And write to database cache
-      Drupal::database()->update('taxonomy_term_field_data')
-        ->fields(array(
-          'depth' => $depth,
-        ))
+      $rows_updated = Drupal::database()->update('taxonomy_term_field_data')
+        ->fields([
+          'depth_level' => $depth,
+          'depth' => $depth, // @fixme: Deprecated since v2.0
+        ])
         ->condition('tid', $tid)
         ->execute();
     }
@@ -184,6 +185,22 @@ function taxonomy_term_depth_views_api() {
  */
 function taxonomy_term_depth_views_data_alter(array &$data) {
   $data['taxonomy_term_field_data']['depth'] = array(
+    'title' => t('Depth (deprecated. Use depth_level)'),
+    'group' => t('Taxonomy term'),
+    'help' => t('Add depth value to sort and filter.'),
+    'field' => array(
+      'id' => 'numeric',
+    ),
+    'sort' => array(
+      'id' => 'standard',
+    ),
+    'filter' => array(
+      'help' => t('Filter by the depth value.'),
+      'id' => 'numeric',
+    ),
+  );
+
+  $data['taxonomy_term_field_data']['depth_level'] = array(
     'title' => t('Depth'),
     'group' => t('Taxonomy term'),
     'help' => t('Add depth value to sort and filter.'),
@@ -198,6 +215,7 @@ function taxonomy_term_depth_views_data_alter(array &$data) {
       'id' => 'numeric',
     ),
   );
+
   return $data;
 }
 
@@ -209,29 +227,27 @@ function taxonomy_term_depth_entity_base_field_info(\Drupal\Core\Entity\EntityTy
   if ($entity_type->id() == 'taxonomy_term') {
     // $field_db = \Drupal\Core\Database\Database::getConnection()->schema();
     $fields['depth_level'] = \Drupal\Core\Field\BaseFieldDefinition::create('integer')
-      ->setReadOnly(TRUE)
       ->setProvider('taxonomy_term_depth')
       ->setLabel(t('Depth'))
       ->setDescription(t('Term depth (1 based)'))
-      ->setDefaultValue(NULL)
-      ->setName('depth');
+      ->setDefaultValue(NULL);
   }
 
   return $fields;
 }
 
-/**
- * Implements hook_term_depth_entity_base_field_info_alter().
- */
-function taxonomy_term_depth_entity_base_field_info_alter(&$fields, \Drupal\Core\Entity\EntityTypeInterface $entity_type) {
-  /**
-   * @var $fields\Drupal\Core\Field\BaseFieldDefinition[]
-   */
-  if ($entity_type->id() == 'taxonomy_term' && isset($fields['depth_level'])) {
-    // Replace exact column name.
-    $fields['depth_level']->setName('depth');
-  }
-}
+///**
+// * Implements hook_term_depth_entity_base_field_info_alter().
+// */
+//function taxonomy_term_depth_entity_base_field_info_alter(&$fields, \Drupal\Core\Entity\EntityTypeInterface $entity_type) {
+//  /**
+//   * @var $fields\Drupal\Core\Field\BaseFieldDefinition[]
+//   */
+//  if ($entity_type->id() == 'taxonomy_term' && isset($fields['depth_level'])) {
+//    // Replace exact column name.
+//    $fields['depth_level']->setName('depth');
+//  }
+//}
 
 /**
  * Get QueueManager service.

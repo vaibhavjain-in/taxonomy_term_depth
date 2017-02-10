@@ -7,6 +7,7 @@
 namespace Drupal\taxonomy_term_depth\QueueManager;
 
 
+use Drupal\Core\Database\Query\Condition;
 use Drupal\Core\Queue\DatabaseQueue;
 use Drupal\Core\Queue\QueueFactory;
 use Drupal\Core\Queue\QueueInterface;
@@ -48,7 +49,11 @@ class Manager {
 
     if (!$queue_all) {
       $query
-        ->condition('td.tid', '', 'IS NULL');
+        ->condition(
+          (new Condition())
+            ->condition('td.depth_level', '', 'IS NULL')
+            ->condition('td.depth', '', 'IS NULL') // @fixme: Deprecated since v2.0
+        );
     }
     else {
       // Delete queue if have one.
@@ -94,7 +99,8 @@ class Manager {
     $query = \Drupal::database()->update('taxonomy_term_field_data');
     $query
       ->fields([
-        'depth' => NULL,
+        'depth_level' => NULL,
+        'depth' => NULL, // @fixme: Deprecated since v2.0
       ]);
 
     if ($this->vid !== NULL) {

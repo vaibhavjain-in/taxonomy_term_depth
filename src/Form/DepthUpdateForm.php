@@ -41,7 +41,7 @@ class DepthUpdateForm extends FormBase {
 
     $countEmpty = $dbh->select('taxonomy_term_field_data', 'ttd')
       ->condition('ttd.vid', $vocabulary->id())
-      ->condition('ttd.depth', '', 'IS NULL')
+      ->condition('ttd.depth_level', '', 'IS NULL')
       ->countQuery()->execute()->fetchField();
 
     // Truncate until two digits at the end without rounding the value.
@@ -73,6 +73,12 @@ class DepthUpdateForm extends FormBase {
     $form['actions']['rebuild all'] = [
       '#identity' => 'btn_rebuild_all',
       '#value' => t('Rebuild all terms (in batch)'),
+      '#type' => 'submit',
+    ];
+
+    $form['actions']['rebuild all voc'] = [
+      '#identity' => 'btn_rebuild_all_voc',
+      '#value' => t('Rebuild all terms in all vocabularies (in batch)'),
       '#type' => 'submit',
     ];
 
@@ -123,6 +129,9 @@ class DepthUpdateForm extends FormBase {
     $options = array();
     $options['vids'] = $form_state->getValue('vid');
     switch ($identity) {
+      case 'btn_rebuild_all_voc':
+        // Apply "btn_rebuild_all" to all vocabularies
+        $options['vids'] = NULL;
       case 'btn_rebuild_all':
         batch_set(array(
           'operations' => array(

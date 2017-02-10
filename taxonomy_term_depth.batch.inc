@@ -14,7 +14,7 @@ require_once __DIR__. '/constants.inc';
  */
 function taxonomy_term_depth_batch_callbacks_update_term_depth($options, &$context) {
   /**
-   * @var \Drupal\Core\Database\Connectio
+   * @var \Drupal\Core\Database\Connection.
    */
   $dbh = \Drupal::database();
 
@@ -37,7 +37,8 @@ function taxonomy_term_depth_batch_callbacks_update_term_depth($options, &$conte
     // Clear all depths first
     $updateQuery = $dbh->update('taxonomy_term_field_data')
       ->fields([
-        'depth' => NULL
+        'depth_level' => NULL,
+        'depth' => NULL, // @fixme: Deprecated since v2.0
       ]);
 
     if (!empty($options['vids'])) {

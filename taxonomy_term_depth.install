@@ -15,11 +15,12 @@ require_once __DIR__. '/constants.inc';
  * Implements hook_install()
  */
 function taxonomy_term_depth_install() {
-  // @todo: Replace with DefinitionUpdate handlers
-//  $entity_manager = \Drupal::entityManager();
-//  $definition = $entity_manager->getFieldStorageDefinitions('node')['depth'];
-//  $entity_manager->onFieldStorageDefinitionCreate($definition);
   _taxonomy_term_depth_install_addfield();
+
+  // Create field storage for the 'Highlight' base field.
+  $entity_manager = \Drupal::entityManager();
+  $definition = $entity_manager->getFieldStorageDefinitions('taxonomy_term')['depth_level'];
+  $entity_manager->onFieldStorageDefinitionCreate($definition);
 
   // Queue all terms to update depths.
   /**
@@ -35,7 +36,7 @@ function _taxonomy_term_depth_install_addfield() {
     $specs['fields']['depth'] = array(
       'type'        => 'int',
       'size'        => 'tiny',
-      'description' => 'Taxonomy depth',
+      'description' => 'Taxonomy depth (deprecated. do not use!)',
       'default'     => NULL,
     );
 
@@ -56,4 +57,22 @@ function taxonomy_term_depth_uninstall() {
   if ($schema->tableExists('taxonomy_term_field_data')) {
     $schema->dropField('taxonomy_term_field_data', 'depth');
   }
+
+  $entity_manager = \Drupal::entityManager();
+  $definition = $entity_manager->getLastInstalledFieldStorageDefinitions('taxonomy_term')['depth_level'];
+  if ($definition) {
+    $entity_manager->onFieldStorageDefinitionDelete($definition);
+  }
+}
+
+/**
+ * Update entity schema.
+ */
+function taxonomy_term_depth_update_8005() {
+  taxonomy_term_depth_uninstall();
+
+  taxonomy_term_depth_install();
+
+  \Drupal::entityTypeManager()->clearCachedDefinitions();
+  \Drupal::entityDefinitionUpdateManager()->applyUpdates();
 }
