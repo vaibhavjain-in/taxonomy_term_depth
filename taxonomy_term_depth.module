@@ -26,7 +26,7 @@ function taxonomy_term_depth_get_by_tid($tid, $force = FALSE) {
       $depth = _taxonomy_term_depth_get_nocache($tid);
 
       // And write to database cache
-      $rows_updated = Drupal::database()->update('taxonomy_term_field_data')
+      Drupal::database()->update('taxonomy_term_field_data')
         ->fields([
           'depth_level' => $depth,
           'depth' => $depth, // @fixme: Deprecated since v2.0
