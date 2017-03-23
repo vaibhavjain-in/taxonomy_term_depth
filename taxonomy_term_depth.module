@@ -29,7 +29,6 @@ function taxonomy_term_depth_get_by_tid($tid, $force = FALSE) {
       Drupal::database()->update('taxonomy_term_field_data')
         ->fields([
           'depth_level' => $depth,
-          'depth' => $depth, // @fixme: Deprecated since v2.0
         ])
         ->condition('tid', $tid)
         ->execute();

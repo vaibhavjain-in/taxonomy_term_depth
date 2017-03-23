@@ -52,7 +52,6 @@ class Manager {
         ->condition(
           (new Condition())
             ->condition('td.depth_level', '', 'IS NULL')
-            ->condition('td.depth', '', 'IS NULL') // @fixme: Deprecated since v2.0
         );
     }
     else {
@@ -92,6 +91,21 @@ class Manager {
       ]);
     }
 
+    $queue_worker = \Drupal::service('plugin.manager.queue_worker')->createInstance('taxonomy_term_depth_update_depth');
+
+    while($item = $this->queue->claimItem()) {
+      try {
+        $queue_worker->processItem($item->data);
+        $this->queue->deleteItem($item);
+      }
+      catch (SuspendQueueException $e) {
+        $this->queue->releaseItem($item);
+        break;
+      }
+      catch (\Exception $e) {
+        watchdog_exception('npq', $e);
+      }
+    }
     return TRUE;
   }
 
@@ -100,7 +114,6 @@ class Manager {
     $query
       ->fields([
         'depth_level' => NULL,
-        'depth' => NULL, // @fixme: Deprecated since v2.0
       ]);
 
     if ($this->vid !== NULL) {
