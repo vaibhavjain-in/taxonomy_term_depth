@@ -44,6 +44,13 @@ function taxonomy_term_depth_get_by_tid($tid, $force = FALSE) {
  * Implements hook_entity_update();
  */
 function taxonomy_term_depth_entity_update($entity) {
+
+  $entity_manager = \Drupal::entityManager();
+  $entity_type = $entity_manager->getDefinition('taxonomy_term');
+  $tablename = $entity_type->getDataTable();
+
+  dpm($entity_type);
+
   // Update depth of the item on save
   if ($entity->getEntityTypeId() == 'taxonomy_term') {
     /**
@@ -52,8 +59,8 @@ function taxonomy_term_depth_entity_update($entity) {
     // Only update if depth was changed
     // @fixme: Uncomment this condition since v2.0
     //if (NULL === $entity->depth_level->first() || $entity->depth_level->first()->value != _taxonomy_term_depth_get_nocache($entity->id())) {
-      $depth = taxonomy_term_depth_get_by_tid($entity->id(), TRUE);
-      $entity->depth_level->setValue(['value' => $depth]);
+      // $depth = taxonomy_term_depth_get_by_tid($entity->id(), TRUE);
+      // $entity->depth_level->setValue(['value' => $depth]);
     //}
   }
 }
@@ -184,22 +191,6 @@ function taxonomy_term_depth_views_api() {
  * Implements hook_views_data_alter().
  */
 function taxonomy_term_depth_views_data_alter(array &$data) {
-  $data['taxonomy_term_field_data']['depth'] = array(
-    'title' => t('Depth (deprecated. Use depth_level)'),
-    'group' => t('Taxonomy term'),
-    'help' => t('Add depth value to sort and filter.'),
-    'field' => array(
-      'id' => 'numeric',
-    ),
-    'sort' => array(
-      'id' => 'standard',
-    ),
-    'filter' => array(
-      'help' => t('Filter by the depth value.'),
-      'id' => 'numeric',
-    ),
-  );
-
   $data['taxonomy_term_field_data']['depth_level'] = array(
     'title' => t('Depth'),
     'group' => t('Taxonomy term'),
@@ -220,7 +211,7 @@ function taxonomy_term_depth_views_data_alter(array &$data) {
 }
 
 /**
- * Implements hook_term_depth_entity_base_field_info().
+ * Implements hook_entity_base_field_info().
  */
 function taxonomy_term_depth_entity_base_field_info(\Drupal\Core\Entity\EntityTypeInterface $entity_type) {
   $fields = [];
@@ -235,19 +226,6 @@ function taxonomy_term_depth_entity_base_field_info(\Drupal\Core\Entity\EntityTy
 
   return $fields;
 }
-
-///**
-// * Implements hook_term_depth_entity_base_field_info_alter().
-// */
-//function taxonomy_term_depth_entity_base_field_info_alter(&$fields, \Drupal\Core\Entity\EntityTypeInterface $entity_type) {
-//  /**
-//   * @var $fields\Drupal\Core\Field\BaseFieldDefinition[]
-//   */
-//  if ($entity_type->id() == 'taxonomy_term' && isset($fields['depth_level'])) {
-//    // Replace exact column name.
-//    $fields['depth_level']->setName('depth');
-//  }
-//}
 
 /**
  * Get QueueManager service.

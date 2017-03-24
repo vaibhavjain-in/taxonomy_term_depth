@@ -9,3 +9,10 @@ taxonomy_term_depth.update_depth_form:
     parameters:
       taxonomy_vocabulary:
         type: entity:taxonomy_vocabulary
+taxonomy_term_depth.prepare_modules_uninstall:
+  path: '/admin/modules/uninstall/taxonomy_term_depth'
+  defaults:
+    _form: 'Drupal\taxonomy_term_depth\Form\DepthDeleteDataForm'
+    _title: 'Delete taxonomy term depths data'
+  requirements:
+    _permission: 'administer taxonomy'

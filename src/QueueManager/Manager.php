@@ -48,11 +48,10 @@ class Manager {
     $query = $this->getTermsQuery();
 
     if (!$queue_all) {
-      $query
-        ->condition(
-          (new Condition())
-            ->condition('td.depth_level', '', 'IS NULL')
-        );
+      $query->condition(
+        (new Condition())
+          ->condition('td.depth_level', '', 'IS NULL')
+      );
     }
     else {
       // Delete queue if have one.
@@ -91,6 +90,40 @@ class Manager {
       ]);
     }
 
+    $this->processQueue();
+
+    return TRUE;
+  }
+
+  public function clearDepths($ids = NULL) {
+    $query = \Drupal::database()->update('taxonomy_term_field_data');
+    $query ->fields([
+        'depth_level' => NULL,
+      ]);
+
+    if ($this->vid !== NULL) {
+      $query->condition('vid', $this->vid);
+    }
+
+    if ($ids !== NULL && is_array($ids) && !empty($ids)) {
+      $query->condition('tid', $ids, 'IN');
+    }
+
+    return $query->execute();
+  }
+
+  protected function getTermsQuery() {
+    $query = \Drupal::database()->select('taxonomy_term_field_data', 'td');
+    $query->fields('td', ['tid']);
+
+    if ($this->vid !== NULL) {
+      $query->condition('td.vid', $this->vid);
+    }
+
+    return $query;
+  }
+
+  public function processQueue() {
     $queue_worker = \Drupal::service('plugin.manager.queue_worker')->createInstance('taxonomy_term_depth_update_depth');
 
     while($item = $this->queue->claimItem()) {
@@ -106,41 +139,6 @@ class Manager {
         watchdog_exception('npq', $e);
       }
     }
-    return TRUE;
-  }
-
-  public function clearDepths($ids = NULL) {
-    $query = \Drupal::database()->update('taxonomy_term_field_data');
-    $query
-      ->fields([
-        'depth_level' => NULL,
-      ]);
-
-    if ($this->vid !== NULL) {
-      $query
-        ->condition('vid', $this->vid);
-    }
-
-    if ($ids !== NULL && is_array($ids) && !empty($ids)) {
-      $query
-        ->condition('tid', $ids, 'IN');
-    }
-
-    return $query->execute();
-  }
-
-  protected function getTermsQuery() {
-    $query = \Drupal::database()->select('taxonomy_term_field_data', 'td');
-
-    $query
-      ->fields('td', ['tid']);
-
-    if ($this->vid !== NULL) {
-      $query
-        ->condition('td.vid', $this->vid);
-    }
-
-    return $query;
   }
 
   public function processNextItem() {
