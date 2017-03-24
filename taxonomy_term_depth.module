@@ -49,8 +49,6 @@ function taxonomy_term_depth_entity_update($entity) {
   $entity_type = $entity_manager->getDefinition('taxonomy_term');
   $tablename = $entity_type->getDataTable();
 
-  dpm($entity_type);
-
   // Update depth of the item on save
   if ($entity->getEntityTypeId() == 'taxonomy_term') {
     /**
@@ -59,8 +57,8 @@ function taxonomy_term_depth_entity_update($entity) {
     // Only update if depth was changed
     // @fixme: Uncomment this condition since v2.0
     //if (NULL === $entity->depth_level->first() || $entity->depth_level->first()->value != _taxonomy_term_depth_get_nocache($entity->id())) {
-      // $depth = taxonomy_term_depth_get_by_tid($entity->id(), TRUE);
-      // $entity->depth_level->setValue(['value' => $depth]);
+       $depth = taxonomy_term_depth_get_by_tid($entity->id(), TRUE);
+       $entity->depth_level->setValue(['value' => $depth]);
     //}
   }
 }
