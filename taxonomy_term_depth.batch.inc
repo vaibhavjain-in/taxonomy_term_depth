@@ -38,7 +38,6 @@ function taxonomy_term_depth_batch_callbacks_update_term_depth($options, &$conte
     $updateQuery = $dbh->update('taxonomy_term_field_data')
       ->fields([
         'depth_level' => NULL,
-        'depth' => NULL, // @fixme: Deprecated since v2.0
       ]);
 
     if (!empty($options['vids'])) {

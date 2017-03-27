@@ -79,10 +79,6 @@ class DynamicDepthCalculationTest extends WebTestBase {
     $chain = taxonomy_term_depth_get_full_chain($term2->id(), TRUE);
     $this->assertTrue($chain === array_reverse($compare), 'Testing reversed fullchain for term2');
 
-    $this->assertEqual(\Drupal::database()->query('SELECT depth FROM {taxonomy_term_field_data} WHERE tid=:tid', [':tid' => $term1->id()])->fetchField(), 1, 'DB depth field of first term');
-    $this->assertEqual(\Drupal::database()->query('SELECT depth FROM {taxonomy_term_field_data} WHERE tid=:tid', [':tid' => $term2->id()])->fetchField(), 2, 'DB depth field of second term');
-    $this->assertEqual(\Drupal::database()->query('SELECT depth FROM {taxonomy_term_field_data} WHERE tid=:tid', [':tid' => $term3->id()])->fetchField(), 3, 'DB depth field of third term');
-
     $this->assertEqual(\Drupal::database()->query('SELECT depth_level FROM {taxonomy_term_field_data} WHERE tid=:tid', [':tid' => $term1->id()])->fetchField(), 1, 'DB depth_level field of first term');
     $this->assertEqual(\Drupal::database()->query('SELECT depth_level FROM {taxonomy_term_field_data} WHERE tid=:tid', [':tid' => $term2->id()])->fetchField(), 2, 'DB depth_level field of second term');
     $this->assertEqual(\Drupal::database()->query('SELECT depth_level FROM {taxonomy_term_field_data} WHERE tid=:tid', [':tid' => $term3->id()])->fetchField(), 3, 'DB depth_level field of third term');
